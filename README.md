@@ -32,12 +32,7 @@ public class MusicInfoRepository
     {
         var hasChildNodes = ((sender as TreeViewNode).Content as MusicInfo).HasChildNodes;
         if (hasChildNodes)
-        {
-            if ((sender as TreeViewNode).ChildNodes.Count > 0)
-                return false;
-            else
-                return true;
-        }
+            return true;
         else
             return false;
     }
@@ -46,6 +41,10 @@ public class MusicInfoRepository
     private void ExecuteOnDemandLoading(object obj)
     {
         var node = obj as TreeViewNode;
+        
+        // Skip repeated population of nodes.
+        if(node.ChildNodes.Count > 0)
+           return;
 
         //Indicator enabled
         node.ShowExpanderAnimation = true;

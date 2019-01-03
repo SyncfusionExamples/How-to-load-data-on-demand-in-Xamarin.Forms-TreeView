@@ -10,6 +10,9 @@ using Xamarin.Forms;
 
 namespace TreeView
 {
+    /// <summary>
+    /// ViewModel class that implements <see cref="Command"/> for load on demand. 
+    /// </summary>
     public class MusicInfoRepository
     {
         private ObservableCollection<MusicInfo> menu;
@@ -33,9 +36,10 @@ namespace TreeView
 
         /// <summary>
         /// CanExecute method is called before expanding and initialization of node. Returns whether the node has child nodes or not.
-        /// Based on return value of expander visibility of the node is handled.  
+        /// Based on return value, expander visibility of the node is handled.  
         /// </summary>
         /// <param name="sender">TreeViewNode is passed as default parameter </param>
+        /// <returns>Returns true, if the specified node has child items to load on demand and expander icon is displayed for that node, else returns false and icon is not displayed.</returns>
         private bool CanExecuteOnDemandLoading(object sender)
         {
             var hasChildNodes = ((sender as TreeViewNode).Content as MusicInfo).HasChildNodes;
@@ -48,7 +52,7 @@ namespace TreeView
         /// <summary>
         /// Execute method is called when any item is requested for load-on-demand items.
         /// </summary>
-        /// <param name="sender">TreeViewNode is passed as default parameter </param>
+        /// <param name="obj">TreeViewNode is passed as default parameter </param>
         private void ExecuteOnDemandLoading(object obj)
         {
             var node = obj as TreeViewNode;
@@ -76,7 +80,7 @@ namespace TreeView
                     //Expand the node after child items are added.
                     node.IsExpanded = true;
 
-                //Animation stopped for expander to show load on demand is executed.
+                //Stop the animation after load on demand is executed, if animation not stopped, it remains still after execution of load on demand.
                 node.ShowExpanderAnimation = false;
             });
         }

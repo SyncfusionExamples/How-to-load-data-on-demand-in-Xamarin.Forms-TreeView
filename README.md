@@ -4,12 +4,13 @@
 
 This example will explain how to load items on demand in TreeView.
 
-Define a ViewModel class that implements ICommand and handle it by CanExecute and Execute methods to check and execute on-demand loading.
+Define a ViewModel class that implements [Command](https://docs.microsoft.com/en-us/xamarin/xamarin-forms/app-fundamentals/data-binding/commanding) and handle it by CanExecute and Execute methods to check and execute on-demand loading.
 
 ```c#
 public class MusicInfoRepository
 {
     private ObservableCollection<MusicInfo> menu;
+
     public ObservableCollection<MusicInfo> Menu
     {
         get { return menu; }
@@ -27,7 +28,12 @@ public class MusicInfoRepository
         TreeViewOnDemandCommand = new Command(ExecuteOnDemandLoading, CanExecuteOnDemandLoading);
     }
 
-    // CanExecute method is called when each item is initialized and defines whether a load-on-demand feature is enabled for this item.
+    /// <summary>
+    /// CanExecute method is called before expanding and initialization of node. Returns whether the node has child nodes or not.
+    /// Based on return value, expander visibility of the node is handled.  
+    /// </summary>
+    /// <param name="sender">TreeViewNode is passed as default parameter </param>
+    /// <returns>Returns true, if the specified node has child items to load on demand and expander icon is displayed for that node, else returns false and icon is not displayed.</returns>
     private bool CanExecuteOnDemandLoading(object sender)
     {
         var hasChildNodes = ((sender as TreeViewNode).Content as MusicInfo).HasChildNodes;
@@ -37,29 +43,38 @@ public class MusicInfoRepository
             return false;
     }
 
-    //Execute method is called when each item is requested for load-on-demand items.
+    /// <summary>
+    /// Execute method is called when any item is requested for load-on-demand items.
+    /// </summary>
+    /// <param name="obj">TreeViewNode is passed as default parameter </param>
     private void ExecuteOnDemandLoading(object obj)
     {
         var node = obj as TreeViewNode;
         
-        // Skip repeated population of nodes.
-        if(node.ChildNodes.Count > 0)
-           return;
+        // Skip the repeated population of child items when every time the node expands.
+        if (node.ChildNodes.Count > 0)
+        {
+            node.IsExpanded = true;
+            return;
+        }
 
-        //Indicator enabled
+        //Animation starts for expander to show progressing of load on demand
         node.ShowExpanderAnimation = true;
         MusicInfo musicInfo = node.Content as MusicInfo;
         Device.BeginInvokeOnMainThread(async () =>
         {
             await Task.Delay(2000);
+            
+            //Fetching child items to add
             var items = GetSubMenu(musicInfo.ID);
-
-            // Populating nodes
+            
+            // Populating child items for the node in on-demand
             node.PopulateChildNodes(items);
             if (items.Count() > 0)
+                //Expand the node after child items are added.
                 node.IsExpanded = true;
-            
-            //Indicator disabled
+
+            //Stop the animation after load on demand is executed, if animation not stopped, it remains still after execution of load on demand.
             node.ShowExpanderAnimation = false;
         });
     }
@@ -97,7 +112,6 @@ public class MusicInfoRepository
             menuItems.Add(new MusicInfo() { ItemName = "Bestselling Albums", HasChildNodes = false, ID = 32 });
             menuItems.Add(new MusicInfo() { ItemName = "New Releases", HasChildNodes = false, ID = 33 });
             menuItems.Add(new MusicInfo() { ItemName = "MP3 Albums", HasChildNodes = false, ID = 34 });
-
         }
         else if (iD == 4)
         {
